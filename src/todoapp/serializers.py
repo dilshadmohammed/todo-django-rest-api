@@ -3,10 +3,10 @@ from .models import Todo
 from django.contrib.auth.models import User
 
 class TodoSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(max_length=20, read_only=True)
     class Meta:
         model = Todo
-        exclude = ['owner']
+        fields = '__all__'
+        # exclude = ['owner']
         
     def create(self, validated_data):
         user_id = self.context['request'].user.id

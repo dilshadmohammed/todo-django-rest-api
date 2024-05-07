@@ -22,6 +22,9 @@ class TodoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(completed=True, owner=self.request.user)
         elif self.request.query_params.get('filter') == 'expired':
            queryset = queryset.filter(completed=False, owner=self.request.user, expiry__lt=str(timezone.now()))
+        else:
+            queryset = queryset.filter(owner=self.request.user)
+            
         return queryset
     
     def perform_create(self, serializer):
@@ -36,14 +39,21 @@ class TodoViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response({"message": "Todo deleted successfully."}, status=200)
+        if instance.owner == request.user:  # Check if the owner of the todo matches the authenticated user
+            self.perform_destroy(instance)
+            return Response({"message": "Todo deleted successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "No Todo matches the given query."}, status=status.HTTP_403_FORBIDDEN)
     
     def toggle_complete(self, request, pk=None):
         todo = self.get_object()
-        serializer = self.get_serializer(todo)
-        serializer.toggle_complete()
-        return Response(serializer.data)
+        if todo.owner == request.user:  # Check if the owner of the todo matches the authenticated user
+            serializer = self.get_serializer(todo)
+            serializer.toggle_complete()
+            return Response(serializer.data)
+        else:
+            return Response({"message": "No Todo matches the given query."}, status=status.HTTP_403_FORBIDDEN)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
