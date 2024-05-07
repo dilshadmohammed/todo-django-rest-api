@@ -7,6 +7,7 @@ from .models import Todo
 from .serializers import TodoSerializer, UserSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from django.utils import timezone
 
 
 class TodoViewSet(viewsets.ModelViewSet):
@@ -19,6 +20,8 @@ class TodoViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         if self.request.query_params.get('filter') == 'completed':
             queryset = queryset.filter(completed=True, owner=self.request.user)
+        elif self.request.query_params.get('filter') == 'expired':
+           queryset = queryset.filter(completed=False, owner=self.request.user, expiry__lt=str(timezone.now()))
         return queryset
     
     def perform_create(self, serializer):
@@ -38,9 +41,8 @@ class TodoViewSet(viewsets.ModelViewSet):
     
     def toggle_complete(self, request, pk=None):
         todo = self.get_object()
-        todo.completed = not todo.completed
-        todo.save()
         serializer = self.get_serializer(todo)
+        serializer.toggle_complete()
         return Response(serializer.data)
 
 class UserViewSet(viewsets.ModelViewSet):

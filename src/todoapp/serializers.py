@@ -7,16 +7,16 @@ class TodoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Todo
         exclude = ['owner']
+        
     def create(self, validated_data):
         user_id = self.context['request'].user.id
         user = User.objects.get(id=user_id)
         return Todo.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.title = validated_data.get('task', instance.task)
-        
-        instance.save()
-        return instance
+    
+    def toggle_complete(self):
+        self.instance.completed = not self.instance.completed
+        self.instance.save()
+        return self.instance
     
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
