@@ -46,7 +46,7 @@
   ```json
   {
     "task": "Sample task",
-    "expiry": "{{$isoTimestamp}}"
+    "expiry": "{{$isoTimestamp}}" //default expiry = timezone.now + 1 day
   }
   ```
  - **Response Body:**
